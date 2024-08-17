@@ -12,6 +12,7 @@ struct StepTrackerApp: App {
     var body: some Scene {
         WindowGroup {
             DashboardView()
+                .environment(HealthKitManager())
         }
     }
 }
