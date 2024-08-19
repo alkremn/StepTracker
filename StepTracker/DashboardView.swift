@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 
 enum HealthMetricContext: CaseIterable, Identifiable {
     case steps, weight
@@ -23,7 +24,7 @@ enum HealthMetricContext: CaseIterable, Identifiable {
 
 struct DashboardView: View {
     
-    @Environment(HealthKitManager.self) private var hkManger
+    @Environment(HealthKitManager.self) private var hkManager
     @AppStorage("hasSeenPermissionPriming") private var hasSeenPermissionPriming = false
     @State private var isShowingPermissionPrimingSheet = false
     @State private var selectedStat: HealthMetricContext = .steps
@@ -61,9 +62,15 @@ struct DashboardView: View {
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 12)
                         
-                        RoundedRectangle(cornerRadius: 12)
-                            .foregroundStyle(.secondary)
-                            .frame(height: 150)
+                        Chart {
+                            ForEach(hkManager.stepData) { step in
+                                BarMark(
+                                    x: .value("Date", step.date, unit: .day),
+                                    y: .value("Steps", step.value)
+                                )
+                            }
+                        }
+                        .frame(height: 150)
                         
                     }
                     .padding()
@@ -95,6 +102,7 @@ struct DashboardView: View {
             }
             .padding()
             .task {
+                await hkManager.fetchStepCount()
                 isShowingPermissionPrimingSheet = !hasSeenPermissionPriming
             }
             .navigationTitle("Dashboard")
